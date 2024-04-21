@@ -20,12 +20,8 @@ class HTMLNode:
         return f"HTMLNode({self.tag}, {self.value}, children: {self.children}, {self.props})"
     
 class LeafNode(HTMLNode):
-    def __init__(self, tag = None, value = None, children = None, props= None):
-        if children != None:
-            raise ValueError("LeafNodes can not have children")
-        if value == None:
-            raise ValueError("LeafNodes must have a value")
-        super().__init__(tag, value, children, props)
+    def __init__(self, tag, value, props = None):
+        super().__init__(tag, value, None, props)
 
     def to_html(self):
         if self.value == None:
