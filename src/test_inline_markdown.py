@@ -76,5 +76,16 @@ class TestInlineMarkdown(unittest.TestCase):
             new_nodes,
         )
 
+    def test_extract_markdown_images(self):
+        text = "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and ![another](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png)"
+        results = extract_markdown_images(text)
+        self.assertEqual(results, [("image", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"), ("another", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png")])
+
+    def test_extract_markdown_links(self):
+        text = "This is text with a [link](https://example.com) and [another](http://www.example.com/another)"
+        links = extract_markdown_links(text)
+        self.assertEqual(links, [("link", "https://example.com"), ("another", "http://www.example.com/another")])
+
+
 if __name__ == "__main__":
     unittest.main()
