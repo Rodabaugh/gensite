@@ -1,3 +1,6 @@
+from htmlnode import ParentNode
+from inline_markdown import text_to_textnodes
+from textnode import text_node_to_html_node
 import re
 
 block_type_paragraph = "paragraph"
@@ -55,3 +58,95 @@ def block_to_block_type(block):
             i += 1
         return block_type_olist
     return block_type_paragraph
+
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+    children = []
+    for node in text_nodes:
+        html_node = text_node_to_html_node(node)
+        children.append(html_node)
+    return children
+
+def paragraph_to_html_node(block):
+    lines = block.split("\n")
+    paragraph = " ".join(lines)
+    children = text_to_children(paragraph)
+    return ParentNode("p", children)
+
+def quote_to_html_node(block):
+    lines = block.split("\n")
+    new_lines = []
+    for line in lines:
+        if not line.startswith(">"):
+            raise ValueError(f"Invalid Markdown/Invalid Quote:\n\n{line}")
+        new_lines.append(line.lstrip(">").strip())
+    content = " ".join(new_lines)
+    children = text_to_children(content)
+    return ParentNode("blockquote", children)
+
+def ulist_to_html_node(block):
+    block_lines = block.split("\n")
+    html_blocks = []
+    for line in block_lines:
+        text = line[2:]
+        children = text_to_children(text)
+        html_blocks.append(ParentNode("li", children))
+    return ParentNode("ul", html_blocks)
+
+def olist_to_html_node(block):
+    block_lines = block.split("\n")
+    html_blocks = []
+    for line in block_lines:
+        text = line[3:]
+        children = text_to_children(text)
+        html_blocks.append(ParentNode("li", children))
+    return ParentNode("ol", html_blocks)
+
+def code_to_html_node(block):
+    block_lines = block.split("\n")
+    code_lines = []
+    if block_lines[0].strip() == '```' and block_lines[-1].strip() == '```':
+        code_lines = block_lines[1:-1]
+    else:
+        code_lines = block_lines
+
+    code = "\n".join(code_lines)
+    return ParentNode("pre", ParentNode("code", code))
+
+def heading_to_html_node(block):
+    heading_level = 0
+
+    for i in range(1,7):
+        if block.startswith("#" * i + " "):
+            heading_level = i
+            break
+
+    if heading_level == 0:
+        raise ValueError(f"Invalid heading: This input is not a heading.\n\n{block}")
+
+    text = block[heading_level + 1 :]
+    children = text_to_children(text)
+
+    return ParentNode("h" + str(heading_level), children)
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    html_nodes = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        if block_type == block_type_paragraph:
+            html_nodes.append(paragraph_to_html_node(block))
+        elif block_type == block_type_heading:
+            html_nodes.append(heading_to_html_node(block))
+        elif block_type == block_type_code:
+            html_nodes.append(code_to_html_node(block))
+        elif block_type == block_type_quote:
+            html_nodes.append(quote_to_html_node(block))
+        elif block_type == block_type_ulist:
+            html_nodes.append(ulist_to_html_node(block))
+        elif block_type == block_type_olist:
+            html_nodes.append(olist_to_html_node(block))
+        else:
+            raise ValueError(f"An unsupported block type was encountered in block:\n\n{block}")
+    
+    return ParentNode("div", children=html_nodes)
