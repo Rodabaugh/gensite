@@ -1,3 +1,4 @@
+import os
 from markdown_blocks import markdown_to_html_node
 
 def extract_title(markdown):
@@ -25,5 +26,20 @@ def generate_page(from_path, template_path, dest_path):
     page = template.replace("{{ Title }}", title)
     page = page.replace("{{ Content }}", html)
 
+    dest_dir = os.path.dirname(dest_path)
+    if dest_dir != "":
+        os.makedirs(dest_dir, exist_ok=True)
+
     with open(dest_path, "w", encoding="utf-8") as file:
         file.write(page)
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    files = os.listdir(dir_path_content)
+    for file in files:
+        full_file_path = os.path.join(dir_path_content, file)
+        new_file_path = os.path.join(dest_dir_path, file)
+        new_file_path = new_file_path.replace(".md", ".html")
+        if os.path.isfile(full_file_path):
+            generate_page(full_file_path, template_path, new_file_path)
+        if os.path.isdir(full_file_path):
+            generate_pages_recursive(full_file_path, template_path, new_file_path)

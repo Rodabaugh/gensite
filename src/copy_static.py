@@ -1,7 +1,7 @@
 import os
 import shutil
 
-def recursive_copy(source_directory = "static", destination_directory = "public"):
+def recursive_copy(source_directory, destination_directory):
     if not os.path.exists(destination_directory):
         try:
             print(f'Creating new {destination_directory} dir')
