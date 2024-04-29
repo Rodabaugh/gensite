@@ -103,15 +103,12 @@ def olist_to_html_node(block):
     return ParentNode("ol", html_blocks)
 
 def code_to_html_node(block):
-    block_lines = block.split("\n")
-    code_lines = []
-    if block_lines[0].strip() == '```' and block_lines[-1].strip() == '```':
-        code_lines = block_lines[1:-1]
-    else:
-        code_lines = block_lines
-
-    code = "\n".join(code_lines)
-    return ParentNode("pre", ParentNode("code", code))
+    if not block.startswith("```") or not block.endswith("```"):
+        raise ValueError("Invalid code block")
+    text = block[4:-3]
+    children = text_to_children(text)
+    code = ParentNode("code", children)
+    return ParentNode("pre", [code])
 
 def heading_to_html_node(block):
     heading_level = 0
